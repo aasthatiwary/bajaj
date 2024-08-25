@@ -1,12 +1,9 @@
-import subprocess
-import threading
 from fastapi import FastAPI, Request
-import uvicorn
 import streamlit as st
 import requests
 import json
+import uvicorn
 
-# FastAPI app
 app = FastAPI()
 
 @app.get("/")
@@ -15,102 +12,76 @@ async def root():
 
 @app.get("/bfhl")
 async def get_operation_code():
-    return {"operation_code": 1}
+    response = {
+        "operation_code": 1
+    }
+    return response
 
-@app.post("/")
+@app.post("/bfhl")
 async def process_request(request: Request):
-    # Get the request body
     body = await request.json()
+    user_id = body.get("user_id", "")
+    college_email = body.get("college_email", "")
+    college_roll_number = body.get("college_roll_number", "")
+    numbers = body.get("numbers", [])
+    alphabets = body.get("alphabets", [])
 
-    # Extract the required data from the request body
-    data = body.get("data", [])
-    numbers = [item for item in data if item.isdigit()]
-    alphabets = [item for item in data if item.isalpha()]
     lowercase_alphabets = [char for char in alphabets if char.islower()]
     highest_lowercase_alphabet = max(lowercase_alphabets) if lowercase_alphabets else ""
 
-    # Prepare the response
     response = {
-        "is_success": True,
-        "user_id": "john_doe_17091999",  # Replace with dynamic user info as needed
-        "email": "john@xyz.com",  # Replace with dynamic email as needed
-        "roll_number": "ABCD123",  # Replace with dynamic roll number as needed
+        "status": "success",
+        "user_id": user_id,
+        "college_email": college_email,
+        "college_roll_number": college_roll_number,
         "numbers": numbers,
         "alphabets": alphabets,
-        "highest_lowercase_alphabet": [highest_lowercase_alphabet] if highest_lowercase_alphabet else []
+        "highest_lowercase_alphabet": highest_lowercase_alphabet
     }
 
     return response
 
-# Function to run FastAPI
-def run_fastapi():
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+def process_data(data):
+    url = "http://localhost:8000/bfhl"  # Local URL for testing
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url, headers=headers, data=json.dumps(data))
 
-# Function to run Streamlit
-def run_streamlit():
-    # Streamlit app
-    def process_data(data):
-        # Send a POST request to the backend API
-        url = "http://localhost:8000/"  # Backend API URL
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {"error": "Failed to process the data"}
+    if response.status_code == 200:
+        response_data = response.json()
+        return response_data
+    else:
+        return {"error": "Failed to process the data"}
 
-    def render_response(response_data, selected_option):
-        if "error" in response_data:
-            st.error(response_data["error"])
-        else:
-            st.success("Data processed successfully!")
-            if selected_option == "Alphabets & Numbers":
-                st.write("Alphabets and Numbers:")
-                st.write("Alphabets:", response_data.get("alphabets", []))
-                st.write("Numbers:", response_data.get("numbers", []))
-            elif selected_option == "Highest Lowercase Alphabet":
-                st.write("Highest Lowercase Alphabet:")
-                st.write(response_data.get("highest_lowercase_alphabet", []))
+def render_response(response_data):
+    if "error" in response_data:
+        st.error(response_data["error"])
+    else:
+        st.json(response_data)
 
-    def main():
-        st.set_page_config(page_title="21BCE5542")
+def main():
+    st.title("Bajaj Finserv Health Challenge")
 
-        st.markdown(
-            """
-            <style>
-            .stApp {
-                background-color: #D3D3D3;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+    user_id = st.text_input("User ID")
+    college_email = st.text_input("College Email")
+    college_roll_number = st.text_input("College Roll Number")
+    numbers = st.text_area("Numbers (comma separated)").split(',')
+    alphabets = st.text_area("Alphabets (comma separated)").split(',')
 
-        st.header("Bajaj Finserv Health Challenge: By Aastha Tiwari")
-        st.markdown("<h1 style='text-align: center; color: red;'>21BCE5542</h1>", unsafe_allow_html=True)
+    numbers = [int(num) for num in numbers if num.isdigit()]
 
-        input_data = st.text_area("Enter JSON data", placeholder='{"data": ["A", "C", "z"]}')
+    data = {
+        "user_id": user_id,
+        "college_email": college_email,
+        "college_roll_number": college_roll_number,
+        "numbers": numbers,
+        "alphabets": alphabets
+    }
 
-        options = ["Alphabets & Numbers", "Highest Lowercase Alphabet"]
-        selected_option = st.selectbox("Select an option", options)
+    if st.button("Submit"):
+        response_data = process_data(data)
+        render_response(response_data)
 
-        if st.button("Process Data"):
-            try:
-                data = json.loads(input_data)
-            except json.JSONDecodeError:
-                st.error("Invalid JSON format")
-                return
-
-            response = process_data(data)
-            render_response(response, selected_option)
-
-    if __name__ == "__main__":
-        main()
-
-# Run FastAPI in a separate thread
-api_thread = threading.Thread(target=run_fastapi)
-api_thread.daemon = True
-api_thread.start()
-
-# Run Streamlit app
-run_streamlit()
+if __name__ == "__main__":
+    import threading
+    threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000)).start()
+    main()
