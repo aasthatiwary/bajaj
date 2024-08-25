@@ -57,7 +57,7 @@ def main():
     )
 
     # Header
-    st.header("Bajaj Finserv Health Challenge: By Aastha Tiwari")
+    st.header("Bajaj Finserv Health Challenge: By Aastha Tiwary")
 
     # Big Title
     st.markdown("<h1 style='text-align: center; color: red;'>21BCE5542</h1>", unsafe_allow_html=True)
