@@ -93,7 +93,7 @@ def render_response(response_data, selected_option):
         # Add more options as needed
 
 def main():
-    st.set_page_config(page_title="21BCE1966")
+    st.set_page_config(page_title="21BCE5542")
 
     st.markdown(
         """
@@ -106,10 +106,10 @@ def main():
         unsafe_allow_html=True,
     )
 
-    st.header("Bajaj Finserv Health Challenge: By Pratham Gupta")
-    st.markdown("<h1 style='text-align: center; color: red;'>21BCE1966</h1>", unsafe_allow_html=True)
+    st.header("Bajaj Finserv Health Challenge: By Aastha Tiwary")
+    st.markdown("<h1 style='text-align: center; color: red;'>21BCE5542</h1>", unsafe_allow_html=True)
 
-    input_data = st.text_area("Enter JSON data", placeholder='{"user_id": "21BCE1966", "college_email": "abc@example.com", "college_roll_number": "21BCE1966", "numbers": [1, 2, 3], "alphabets": ["A", "C", "z"]}')
+    input_data = st.text_area("Enter JSON data", placeholder='{"user_id": "21BCE5542", "college_email": "abc@example.com", "college_roll_number": "21BCE5542", "numbers": [1, 2, 3], "alphabets": ["A", "C", "z"]}')
 
     options = ["Alphabets & Numbers", "Symbols"]
     selected_option = st.selectbox("Select an option", options)
