@@ -124,7 +124,7 @@ def main():
         response = process_data(data)
         render_response(response, selected_option)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     # Run FastAPI in a separate thread
     fastapi_thread = Thread(target=run_fastapi)
     fastapi_thread.daemon = True
