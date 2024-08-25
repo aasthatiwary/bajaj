@@ -1,87 +1,87 @@
-from fastapi import FastAPI, Request
 import streamlit as st
 import requests
 import json
-import uvicorn
-
-app = FastAPI()
-
-@app.get("/")
-async def root():
-    return {"message": "Hello, World!"}
-
-@app.get("/bfhl")
-async def get_operation_code():
-    response = {
-        "operation_code": 1
-    }
-    return response
-
-@app.post("/bfhl")
-async def process_request(request: Request):
-    body = await request.json()
-    user_id = body.get("user_id", "")
-    college_email = body.get("college_email", "")
-    college_roll_number = body.get("college_roll_number", "")
-    numbers = body.get("numbers", [])
-    alphabets = body.get("alphabets", [])
-
-    lowercase_alphabets = [char for char in alphabets if char.islower()]
-    highest_lowercase_alphabet = max(lowercase_alphabets) if lowercase_alphabets else ""
-
-    response = {
-        "status": "success",
-        "user_id": user_id,
-        "college_email": college_email,
-        "college_roll_number": college_roll_number,
-        "numbers": numbers,
-        "alphabets": alphabets,
-        "highest_lowercase_alphabet": highest_lowercase_alphabet
-    }
-
-    return response
 
 def process_data(data):
-    url = "http://localhost:8000/bfhl"  # Local URL for testing
+    # Send a POST request to the backend API
+    url = "http://your-api-url.com/endpoint"  # Replace with your backend API URL
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, headers=headers, data=json.dumps(data))
 
+    # Check if the request was successful
     if response.status_code == 200:
+        # Extract the response data
         response_data = response.json()
         return response_data
     else:
         return {"error": "Failed to process the data"}
 
-def render_response(response_data):
+def render_response(response_data, selected_option):
     if "error" in response_data:
         st.error(response_data["error"])
     else:
-        st.json(response_data)
+        st.success("Data processed successfully!")
+
+        # Render the response based on the selected option
+        if selected_option == "Alphabets & Numbers":
+            if "alphabets_numbers" in response_data:
+                result = response_data["alphabets_numbers"]
+                st.write("Alphabets and Numbers:")
+                for item in result:
+                    st.write(f"- {item}")
+            else:
+                st.write("No data found for Alphabets and Numbers.")
+        elif selected_option == "Symbols":
+            if "symbols" in response_data:
+                result = response_data["symbols"]
+                st.write("Symbols:")
+                for item in result:
+                    st.write(f"- {item}")
+            else:
+                st.write("No data found for Symbols.")
+        # Add more options as needed
 
 def main():
-    st.title("Bajaj Finserv Health Challenge")
+    st.set_page_config(page_title="21BCE5542")
 
-    user_id = st.text_input("User ID")
-    college_email = st.text_input("College Email")
-    college_roll_number = st.text_input("College Roll Number")
-    numbers = st.text_area("Numbers (comma separated)").split(',')
-    alphabets = st.text_area("Alphabets (comma separated)").split(',')
+    # Set background color
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #D3D3D3;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    numbers = [int(num) for num in numbers if num.isdigit()]
+    # Header
+    st.header("Bajaj Finserv Health Challenge: By Aastha Tiwari")
 
-    data = {
-        "user_id": user_id,
-        "college_email": college_email,
-        "college_roll_number": college_roll_number,
-        "numbers": numbers,
-        "alphabets": alphabets
-    }
+    # Big Title
+    st.markdown("<h1 style='text-align: center; color: red;'>21BCE5542</h1>", unsafe_allow_html=True)
 
-    if st.button("Submit"):
-        response_data = process_data(data)
-        render_response(response_data)
+    # Get user input
+    input_data = st.text_area("Enter JSON data", placeholder='{"data": ["A", "C", "z"]}')
+
+    # Create a dropdown for selecting the option
+    options = ["Alphabets & Numbers", "Symbols"]
+    selected_option = st.selectbox("Select an option", options)
+
+    if st.button("Process Data"):
+        # Parse the input JSON
+        try:
+            data = json.loads(input_data)
+        except json.JSONDecodeError:
+            st.error("Invalid JSON format")
+            return
+
+        # Process the data
+        response = process_data(data)
+
+        # Render the response based on the selected option
+        render_response(response, selected_option)
 
 if __name__ == "__main__":
-    import threading
-    threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000)).start()
     main()
